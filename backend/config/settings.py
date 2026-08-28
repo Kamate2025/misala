@@ -8,6 +8,7 @@ the project root, so the project root stays a plain package: `manage.py`,
 
 import os
 from pathlib import Path
+from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -15,10 +16,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Core / security
 # --------------------------------------------------------------------------
 
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "67523x7itbd2ogwybxnuygwbihngfuhksdbhmn3t2yucbgfx3ivq3fi",
-)
+# SECRET_KEY = os.environ.get(
+#     "DJANGO_SECRET_KEY",
+#     "67523x7itbd2ogwybxnuygwbihngfuhksdbhmn3t2yucbgfx3ivq3fi",
+# )
+SECRET_KEY = config("SECRET_KEY")
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
 
@@ -97,12 +99,37 @@ ASGI_APPLICATION = "config.asgi.application"
 
 SQLITE_PATH = os.environ.get("SQLITE_PATH", str(BASE_DIR / "db.sqlite3"))
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": SQLITE_PATH,
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": SQLITE_PATH,
+#     }
+# }
+
+USE_POSTGRES = config(
+    "USE_POSTGRES",
+    default=False,
+    cast=bool
+)
+
+if USE_POSTGRES:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": config("DB_NAME"),
+            "USER": config("DB_USER"),
+            "PASSWORD": config("DB_PASSWORD"),
+            "HOST": config("DB_HOST", default="localhost"),
+            "PORT": config("DB_PORT", default="5432"),
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": SQLITE_PATH,
+        }
+    }
 
 # --------------------------------------------------------------------------
 # Password validation
@@ -159,3 +186,13 @@ CORS_ALLOWED_ORIGINS = [
     ).split(",")
     if o.strip()
 ]
+
+
+SECURE_PROXY_SSL_HEADER = (
+    "HTTP_X_FORWARDED_PROTO",
+    "https",
+)
+
+SESSION_COOKIE_SECURE = True
+
+CSRF_COOKIE_SECURE = True
