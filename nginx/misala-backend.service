@@ -1,0 +1,26 @@
+# Example systemd unit for the MISALA Django backend (Gunicorn).
+#
+# Install:
+#   sudo cp misala-backend.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now misala-backend
+#
+# Adjust User, WorkingDirectory, and the venv path to match the VPS.
+
+[Unit]
+Description=MISALA Django backend (Gunicorn)
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/misala/backend
+EnvironmentFile=/var/www/misala/backend/.env
+ExecStart=/var/www/misala/backend/.venv/bin/gunicorn \
+    config.wsgi:application \
+    --bind 127.0.0.1:8000 \
+    --workers 3
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

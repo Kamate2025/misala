@@ -1,0 +1,25 @@
+services:
+  backend:
+    build: ./backend
+    env_file:
+      - ./backend/.env
+    environment:
+      # Points Django's sqlite DB at the named volume below so data
+      # survives `docker compose down` (but not `docker compose down -v`).
+      SQLITE_PATH: /app/data/db.sqlite3
+    volumes:
+      - sqlite_data:/app/data
+    expose:
+      - "8000"
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "8014:80"
+    restart: unless-stopped
+
+volumes:
+  sqlite_data:
